@@ -9,16 +9,14 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@fastify/postgres": "^5.2.0",
-    "fastify": "^4.24.2",
-    "fastify-auth": "^1.2.0",
-    "fastify-jwt": "^4.2.0",
-    "fastify-plugin": "^4.5.1",
-    "pg": "^8.11.3"
-  },
-  "devDependencies": {
-    "@types/node": "^20.8.6",
-    "typescript": "^5.2.2"
+    "@fastify/postgres": "5.2.0",
+    "fastify": "4.24.3",
+    "@fastify/auth": "4.3.0",
+    "@fastify/jwt": "7.2.2",
+    "fastify-plugin": "4.5.1",
+    "pg": "8.11.3",
+    "@types/node": "20.8.6",
+    "typescript": "5.2.2"
   },
   "keywords": [],
   "description": ""
