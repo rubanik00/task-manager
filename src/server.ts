@@ -1,15 +1,40 @@
-import Fastify from "fastify";
+import * as dotenv from "dotenv";
+import fastify from "fastify";
+import fastifyAuth from "@fastify/auth";
 import { routes } from "./router";
+dotenv.config();
 
-const fastify = Fastify({
-  logger: true,
+const server = fastify();
+
+server.register(fastifyAuth);
+
+server.register(require("@fastify/jwt"), {
+  secret: process.env.JWT_SECRET,
 });
-fastify.register(routes);
+server.register(routes);
 
-fastify.listen({ port: 3005 }, function (err, address) {
+server.decorate(
+  "authenticate",
+  async function (
+    request: { jwtVerify: () => any },
+    reply: { send: (arg0: any) => void }
+  ) {
+    try {
+      await request.jwtVerify();
+    } catch (err) {
+      reply.send(err);
+    }
+  }
+);
+
+server.get("/ping", async (_request: any, _reply: any) => {
+  return "pong\n";
+});
+
+server.listen({ port: 3005 }, (err: any, address: any) => {
   if (err) {
-    fastify.log.error(err);
+    console.error(err);
     process.exit(1);
   }
-  console.log(`Started server at ${address}`);
+  console.log(`Server listening at ${address}`);
 });
