@@ -9,17 +9,14 @@ export const checkAuth = async (
     const token = request.headers["authorization"];
 
     if (!token) {
-      reply.code(401).send("Требуется авторизация");
+      reply.code(401).send("Need Authorization header");
       return;
     }
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    console.log("DECODED ", decoded);
-
     request.user = decoded;
   } catch (error) {
-    reply.code(401).send("Требуется авторизация");
+    reply.code(401).send("Need Authorization header");
     return;
   }
 };
-

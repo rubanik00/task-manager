@@ -1,2 +1,2 @@
 npx tsc
-node dist/server.js
+node dist/src/server.js

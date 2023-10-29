@@ -1,3 +1,4 @@
+import { getUserId } from "./helpers/getUserId";
 import {
   generalJsonSchema,
   loginSchema,
@@ -24,15 +25,36 @@ export async function routes(fastify: any) {
 
   fastify.get("/:username/user-id", async (request: any, reply: any) => {
     const params = request.params as any;
-    const findUserQuery = `
-      SELECT id, username
-      FROM users
-      WHERE username = $1`;
-
-    const userId = await pool.query(findUserQuery, [params.username]);
-
-    reply.code(200).send({ userID: userId.rows[0].id });
+    const userId = await getUserId(pool, params.username);
+    reply.code(200).send({ userID: userId });
   });
+
+  fastify.get(
+    "/tasks",
+    {
+      onRequest: [fastify.authenticate],
+    },
+    async (request: any, reply: any) => {
+      const username = request.user.username;
+
+      try {
+        const userId = await getUserId(pool, username);
+
+        const query = `
+          SELECT id, name, description, status, creation_time
+          FROM tasks
+          WHERE assign_to_user = $1
+        `;
+
+        const result = await pool.query(query, [userId]);
+
+        reply.status(200).send(result.rows);
+      } catch (error) {
+        console.error("Error fetching tasks:", error);
+        reply.status(500).send({ error: "Error fetching tasks" });
+      }
+    }
+  );
 
   fastify.post(
     "/register",
@@ -113,8 +135,6 @@ export async function routes(fastify: any) {
           process.env.JWT_SECRET
         );
 
-        console.log("TOKEN ", token);
-
         reply.send({ token });
       } catch (error) {
         reply.code(500).send(error);
@@ -133,6 +153,7 @@ export async function routes(fastify: any) {
     async (request: any, reply: any) => {
       const body = request.body as any;
       const currentTime: number = Date.now() / 1000;
+      const userId = await getUserId(pool, request.user.username);
 
       try {
         const query = `
@@ -142,7 +163,7 @@ export async function routes(fastify: any) {
         const result = await pool.query(query, [
           body.general.name,
           body.general.description,
-          body.general.assign_to_user,
+          userId,
           body.general.status,
           parseInt(currentTime.toString()),
         ]);
@@ -168,7 +189,7 @@ export async function routes(fastify: any) {
       const body = request.body as any;
       const id = params.id;
 
-      const fields = ["name", "description", "assign_to_user_id", "status"];
+      const fields = ["name", "description", "status"];
       const notEmptyFields = [];
       const data = [];
       for (let i = 0; i < fields.length; i++) {
@@ -199,6 +220,39 @@ export async function routes(fastify: any) {
       } catch (error) {
         console.error("Error updating data:", error);
         reply.status(500).send({ error: "Error updating data" });
+      }
+    }
+  );
+
+  fastify.delete(
+    "/:taskId/task",
+    {
+      onRequest: [fastify.authenticate],
+    },
+    async (request: any, reply: any) => {
+      const username = request.user.username;
+      const taskId = request.params.taskId;
+
+      try {
+        const userId = await getUserId(pool, username);
+
+        const deleteQuery = `
+          DELETE FROM tasks
+          WHERE id = $1 AND assign_to_user = $2
+        `;
+
+        const result = await pool.query(deleteQuery, [taskId, userId]);
+
+        if (result.rowCount === 1) {
+          reply.status(204).send({ success: "Successfully Deleted" });
+        } else {
+          reply
+            .status(404)
+            .send({ error: "Task not found or does not belong to the user" });
+        }
+      } catch (error) {
+        console.error("Error deleting task:", error);
+        reply.status(500).send({ error: "Error deleting task" });
       }
     }
   );

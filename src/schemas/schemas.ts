@@ -4,7 +4,6 @@ export const generalJsonSchema = {
   properties: {
     name: { type: "string" },
     description: { type: "string" },
-    assign_to_user: { type: "number" },
     status: { type: "string" },
   },
 };
