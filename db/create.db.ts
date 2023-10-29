@@ -2,19 +2,16 @@ import pgPromise from "pg-promise";
 
 const pgp = pgPromise();
 
-// Конфигурация подключения к базе данных
 const connectionConfig = {
-  host: "localhost", // Замените на адрес вашей PostgreSQL базы данных
-  port: 5433, // Замените на порт вашей PostgreSQL базы данных
+  host: "localhost",
+  port: 5433,
   database: "postgres",
   user: "postgres",
   password: "2505",
 };
 
-// Создаем объект базы данных
 const db = pgp(connectionConfig);
 
-// SQL-запросы для создания таблиц
 const createTablesQuery = `
   CREATE TABLE IF NOT EXISTS users (
     id SERIAL PRIMARY KEY,

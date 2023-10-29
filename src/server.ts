@@ -27,10 +27,6 @@ server.decorate(
   }
 );
 
-server.get("/ping", async (_request: any, _reply: any) => {
-  return "pong\n";
-});
-
 server.listen({ port: 3005 }, (err: any, address: any) => {
   if (err) {
     console.error(err);
